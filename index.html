@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorios Clark - Buzón Digital</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #eef2f7; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; /* Centra el cuadro horizontalmente */
+            min-height: 100vh; 
+            margin: 0; 
+            padding-top: 30px; /* Espacio desde el borde superior de la ventana */
+        }
+        .card { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 90%; 
+            max-width: 450px; 
+            border-top: 8px solid #0056b3; 
+        }
+        .logo-container {
+            display: flex;
+            justify-content: flex-start; /* Alinea el logo a la izquierda de la tarjeta */
+            margin-bottom: 15px;
+        }
+        .logo-img {
+            max-width: 110px;
+            height: auto;
+            border-radius: 4px;
+        }
+        h2 { 
+            color: #0056b3; 
+            text-align: center; 
+            margin: 10px 0 5px 0; 
+        }
+        p.subtitle { 
+            text-align: center; 
+            color: #666; 
+            font-size: 0.9em; 
+            margin-bottom: 25px; 
+        }
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            color: #444; 
+            font-weight: bold; 
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 5px; 
+            border: 1px solid #cbd5e0; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 1em; 
+        }
+        textarea { 
+            resize: none; 
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #0056b3; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            margin-top: 25px; 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background 0.3s; 
+        }
+        button:hover { 
+            background: #003d82; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="logo-container">
+            <img src="Logo.jfif" alt="Logo Laboratorios Clark" class="logo-img">
+        </div>
+
+        <h2>Laboratorios Clark</h2>
+        <p class="subtitle">Excelencia en Análisis Clínicos</p>
+        
+        <label for="paciente">Nombre Completo (Opcional):</label>
+        <input type="text" id="paciente" placeholder="Ej. Juan Pérez">
+
+        <label for="servicio">Servicio Utilizado:</label>
+        <select id="servicio">
+            <option value="Analisis de Sangre">Análisis de Sangre</option>
+            <option value="Check-up General">Check-up General</option>
+            <option value="Perfil de Lipidos">Perfil de Lípidos</option>
+            <option value="Prueba de Glucosa">Prueba de Glucosa</option>
+            <option value="Otro">Otro servicio</option>
+        </select>
+
+        <label for="calificacion">Calificación del Servicio:</label>
+        <select id="calificacion">
+            <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
+            <option value="4">⭐⭐⭐⭐ (Muy Bueno)</option>
+            <option value="3">⭐⭐⭐ (Regular)</option>
+            <option value="2">⭐⭐ (Malo)</option>
+            <option value="1">⭐ (Pésimo)</option>
+        </select>
+
+        <label for="comentario">Comentarios o Sugerencias:</label>
+        <textarea id="comentario" rows="4" placeholder="¿Cómo fue su experiencia con nosotros?"></textarea>
+
+        <button onclick="enviarDatos()">Enviar mi Opinión</button>
+    </div>
+
+    <script>
+        async function enviarDatos() {
+            const paciente = document.getElementById('paciente').value;
+            const servicio = document.getElementById('servicio').value;
+            const calificacion = document.getElementById('calificacion').value;
+            const comentario = document.getElementById('comentario').value;
+
+            if (!comentario.trim()) {
+                alert("Por favor, escriba un breve comentario sobre su experiencia.");
+                return;
+            }
+
+            const datos = { 
+                paciente: paciente || "Anónimo", 
+                servicio, 
+                calificacion, 
+                comentario 
+            };
+
+            try {
+                const respuesta = await fetch('http://localhost:3000/enviar-opinion', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await respuesta.json();
+                alert(resultado.mensaje);
+                
+                document.getElementById('paciente').value = "";
+                document.getElementById('comentario').value = "";
+            } catch (error) {
+                alert("Error de conexión: El servidor del laboratorio no responde.");
+                console.error("Error al enviar:", error);
+            }
+        }
+    </script>
+</body>
+</html>
