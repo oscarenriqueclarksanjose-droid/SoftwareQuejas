@@ -47,34 +47,28 @@
 
     <script>
         async function enviar() {
-            const datos = {
-                paciente: document.getElementById('paciente').value || "Anónimo",
-                servicio: document.getElementById('servicio').value,
-                calificacion: document.getElementById('calificacion').value,
-                comentario: document.getElementById('comentario').value
-            };
+    const datos = {
+        paciente: document.getElementById('paciente').value || "Anónimo",
+        servicio: document.getElementById('servicio').value,
+        calificacion: document.getElementById('calificacion').value,
+        comentario: document.getElementById('comentario').value
+    };
 
-            if(!datos.comentario) return alert("Escribe un comentario");
+    if(!datos.comentario) return alert("Escribe un comentario");
 
-            // 1. Envío a Render (Nube)
-            fetch('https://softwarequejas.onrender.com/enviar-opinion', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(datos)
-            }).catch(() => console.log("Nube no disponible"));
-
-            // 2. Envío a Local (Tu Laptop)
-            try {
-                const resLocal = await fetch('http://localhost:3000/enviar-opinion', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(datos)
-                });
-                alert("¡Guardado en Excel Local y Nube!");
-            } catch (e) {
-                alert("Guardado en Nube. (Recuerda abrir server.js en tu laptop para el Excel local)");
-            }
-        }
+    try {
+        const res = await fetch('https://softwarequejas.onrender.com/enviar-opinion', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(datos)
+        });
+        const result = await res.json();
+        alert(result.mensaje);
+        location.reload(); // Recargar para limpiar
+    } catch (e) {
+        alert("Error al conectar con el laboratorio.");
+    }
+}
     </script>
 </body>
 </html>
