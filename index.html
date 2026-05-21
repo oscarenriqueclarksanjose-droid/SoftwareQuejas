@@ -10,10 +10,10 @@
             background-color: #eef2f7; 
             display: flex; 
             flex-direction: column;
-            align-items: center; /* Centra el cuadro horizontalmente */
+            align-items: center; 
             min-height: 100vh; 
             margin: 0; 
-            padding-top: 30px; /* Espacio desde el borde superior de la ventana */
+            padding-top: 30px;
         }
         .card { 
             background: white; 
@@ -26,7 +26,7 @@
         }
         .logo-container {
             display: flex;
-            justify-content: flex-start; /* Alinea el logo a la izquierda de la tarjeta */
+            justify-content: flex-start;
             margin-bottom: 15px;
         }
         .logo-img {
@@ -138,7 +138,8 @@
             };
 
             try {
-                const respuesta = await fetch('http://localhost:3000/enviar-opinion', {
+                // CONEXIÓN A RENDER
+                const respuesta = await fetch('https://softwarequejas.onrender.com/enviar-opinion', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(datos)
@@ -150,7 +151,7 @@
                 document.getElementById('paciente').value = "";
                 document.getElementById('comentario').value = "";
             } catch (error) {
-                alert("Error de conexión: El servidor del laboratorio no responde.");
+                alert("Error: No se pudo conectar con el servidor de la nube.");
                 console.error("Error al enviar:", error);
             }
         }
