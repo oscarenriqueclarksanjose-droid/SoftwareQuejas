@@ -1,51 +1,42 @@
 const express = require('express');
+const fs = require('fs');
 const cors = require('cors');
-const fs = require('fs'); // Librería para manejar archivos
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+// Permitir que se vean index.html y admin.html desde el navegador
 app.use(express.static(__dirname));
 
-const ARCHIVO_EXCEL = 'opiniones_clark.csv';
+const FILE_NAME = 'opiniones_clark.csv';
 
-// Si el archivo no existe, creamos la cabecera del Excel
-if (!fs.existsSync(ARCHIVO_EXCEL)) {
-    const cabecera = "Fecha,Paciente,Servicio,Calificacion,Comentario\n";
-    fs.writeFileSync(ARCHIVO_EXCEL, cabecera, 'utf8');
+// Crear cabecera si el archivo no existe
+if (!fs.existsSync(FILE_NAME)) {
+    fs.writeFileSync(FILE_NAME, 'Fecha,Paciente,Servicio,Calificacion,Comentario\n');
 }
 
 app.post('/enviar-opinion', (req, res) => {
     const { paciente, servicio, calificacion, comentario } = req.body;
-
-    // Formatear los datos para el Excel (CSV)
     const fecha = new Date().toLocaleString();
-    const nombre = paciente || "Anonimo";
-    // Limpiamos comas del comentario para no romper el formato CSV
-    const comentarioLimpio = comentario.replace(/,/g, "."); 
     
-    const nuevaLinea = `${fecha},${nombre},${servicio},${calificacion},${comentarioLimpio}\n`;
+    // El \n al final asegura que cada opinión sea una fila nueva
+    const nuevaLinea = `${fecha},${paciente},${servicio},${calificacion},${comentario}\n`;
 
-    // GUARDAR EN EL ARCHIVO (Añadir al final)
-    fs.appendFile(ARCHIVO_EXCEL, nuevaLinea, (err) => {
+    fs.appendFile(FILE_NAME, nuevaLinea, (err) => {
         if (err) {
-            console.error("Error al guardar en Excel:", err);
-            return res.status(500).send({ mensaje: "Error interno al guardar." });
+            console.error("Error al escribir:", err);
+            return res.status(500).json({ mensaje: "Error al guardar localmente" });
         }
-        console.log("¡Dato guardado en Excel con éxito!");
-        res.send({ mensaje: "Gracias. Su opinión ha sido registrada en el sistema de Laboratorios Clark." });
+        res.json({ mensaje: "¡Opinión guardada con éxito!" });
     });
 });
 
 app.get('/ver-opiniones', (req, res) => {
-    // Ahora leemos directamente el archivo para mostrarlo
-    fs.readFile(ARCHIVO_EXCEL, 'utf8', (err, data) => {
-        if (err) return res.send("Aún no hay opiniones.");
-        res.send(data);
-    });
+    res.sendFile(path.join(__dirname, FILE_NAME));
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor Clark activo. Guardando datos en: ${ARCHIVO_EXCEL}`);
+    console.log(`Servidor Clark corriendo en puerto ${PORT}`);
 });
