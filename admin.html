@@ -51,38 +51,35 @@
     let chart1 = null, chart2 = null;
 
     async function cargar() {
-        console.log("Intentando conectar con el servidor...");
-        try {
-            const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
-            csvData = await res.text();
-            
-            // Debug: Ver qué llega del servidor
-            console.log("Datos recibidos:", csvData);
-
-            const filas = csvData.trim().split('\n');
-            if (filas.length <= 1) {
-                document.getElementById('listaCritica').innerText = "Aún no hay opiniones en la base de datos.";
-                return;
-            }
-
-            // Procesar filas saltando el encabezado
-            const opiniones = filas.slice(1).map(f => {
-                const c = f.split(',');
-                return { 
-                    fecha: c[0] || "N/A", 
-                    paciente: c[1] || "Anónimo", 
-                    servicio: c[2] || "General", 
-                    estrellas: parseInt(c[3]) || 0, 
-                    comentario: c[4] || "" 
-                };
-            }).filter(d => d.estrellas > 0);
-
-            actualizarUI(opiniones);
-        } catch (e) { 
-            console.error("Error cargando datos:", e);
-            document.getElementById('listaCritica').innerText = "Error al conectar con Render.";
+    try {
+        const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
+        const opiniones = await res.json(); // Ahora leemos JSON, no texto
+        
+        if (!opiniones || opiniones.length === 0) {
+            document.getElementById('listaCritica').innerText = "Base de datos vacía.";
+            return;
         }
+
+        // Estructuramos los datos para la interfaz
+        const datosProcesados = opiniones.map(o => ({
+            fecha: o.fecha || "Sin fecha",
+            paciente: o.paciente || "Anónimo",
+            servicio: o.servicio || "General",
+            estrellas: parseInt(o.calificacion) || 0, // Usamos 'calificacion' que es como está en tu Schema
+            comentario: o.comentario || ""
+        }));
+
+        actualizarUI(datosProcesados);
+        
+        // Guardamos una copia para cuando el jefe quiera el Excel
+        csvData = "Fecha,Paciente,Servicio,Calificacion,Comentario\n" + 
+                  datosProcesados.map(d => `${d.fecha},${d.paciente},${d.servicio},${d.estrellas},${d.comentario}`).join('\n');
+
+    } catch (e) {
+        console.error("Error:", e);
+        document.getElementById('listaCritica').innerText = "Error de conexión con la nube.";
     }
+}
 
     function actualizarUI(data) {
         document.getElementById('total').innerText = data.length;
