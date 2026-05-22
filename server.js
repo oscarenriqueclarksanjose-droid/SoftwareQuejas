@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // CONEXIÓN MAESTRA A MONGODB
-const MONGO_URI = "mongodb://admin1:12345@cluster0-shard-00-00.z0wjfax.mongodb.net:27017,cluster0-shard-00-01.z0wjfax.mongodb.net:27017,cluster0-shard-00-02.z0wjfax.mongodb.net:27017/LaboratorioClark?ssl=true&replicaSet=atlas-xxxxxx-shard-0&authSource=admin&retryWrites=true&w=majority";
+const MONGO_URI = "mongodb+srv://admin1:12345@cluster0.z0wjfax.mongodb.net/?appName=Cluster0";
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Conectado a la Bóveda de MongoDB Atlas"))
