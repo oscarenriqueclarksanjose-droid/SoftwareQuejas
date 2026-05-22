@@ -10,6 +10,7 @@
         .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        canvas { max-height: 300px; }
         .criticos { background: #fff5f5; border: 2px solid #feb2b2; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
@@ -32,12 +33,12 @@
 
 <div class="charts">
     <div class="card"><h3>Promedio por Servicio</h3><canvas id="barChart"></canvas></div>
-    <div class="card"><h3>Distribución de Estrellas</h3><canvas id="pieChart"></canvas></div>
+    <div class="card"><h3>Satisfacción</h3><canvas id="pieChart"></canvas></div>
 </div>
 
 <div class="criticos">
     <h3 style="color:red">🚨 Comentarios Negativos (Atención Urgente)</h3>
-    <div id="listaCritica"></div>
+    <div id="listaCritica">Cargando datos...</div>
 </div>
 
 <table>
@@ -50,34 +51,63 @@
     let chart1 = null, chart2 = null;
 
     async function cargar() {
-        const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
-        csvData = await res.text();
-        const filas = csvData.trim().split('\n').slice(1);
-        
-        const datos = filas.map(f => {
-            const c = f.split(',');
-            return { fecha: c[0], paciente: c[1], servicio: c[2], estrellas: parseInt(c[3]), comentario: c[4] };
-        }).filter(d => !isNaN(d.estrellas));
+        console.log("Intentando conectar con el servidor...");
+        try {
+            const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
+            csvData = await res.text();
+            
+            // Debug: Ver qué llega del servidor
+            console.log("Datos recibidos:", csvData);
 
-        actualizarUI(datos);
+            const filas = csvData.trim().split('\n');
+            if (filas.length <= 1) {
+                document.getElementById('listaCritica').innerText = "Aún no hay opiniones en la base de datos.";
+                return;
+            }
+
+            // Procesar filas saltando el encabezado
+            const opiniones = filas.slice(1).map(f => {
+                const c = f.split(',');
+                return { 
+                    fecha: c[0] || "N/A", 
+                    paciente: c[1] || "Anónimo", 
+                    servicio: c[2] || "General", 
+                    estrellas: parseInt(c[3]) || 0, 
+                    comentario: c[4] || "" 
+                };
+            }).filter(d => d.estrellas > 0);
+
+            actualizarUI(opiniones);
+        } catch (e) { 
+            console.error("Error cargando datos:", e);
+            document.getElementById('listaCritica').innerText = "Error al conectar con Render.";
+        }
     }
 
     function actualizarUI(data) {
         document.getElementById('total').innerText = data.length;
-        const prom = data.reduce((a, b) => a + b.estrellas, 0) / data.length || 0;
+        
+        const suma = data.reduce((a, b) => a + b.estrellas, 0);
+        const prom = data.length > 0 ? (suma / data.length) : 0;
         document.getElementById('promedio').innerText = prom.toFixed(1);
         
         const criticos = data.filter(d => d.estrellas <= 2);
         document.getElementById('quejas').innerText = criticos.length;
 
         // Lista de quejas
-        document.getElementById('listaCritica').innerHTML = criticos.map(c => `
-            <p><strong>${c.paciente}:</strong> ${c.comentario} (${c.estrellas}⭐)</p>
-        `).join('');
+        document.getElementById('listaCritica').innerHTML = criticos.length > 0 
+            ? criticos.map(c => `<p><strong>${c.paciente}:</strong> ${c.comentario} <span style="color:red">(${c.estrellas}⭐)</span></p>`).join('')
+            : "<p>No hay quejas críticas.</p>";
 
         // Tabla
         document.getElementById('tablaCuerpo').innerHTML = data.map(d => `
-            <tr><td>${d.fecha}</td><td>${d.paciente}</td><td>${d.servicio}</td><td>${d.estrellas}</td><td>${d.comentario}</td></tr>
+            <tr>
+                <td>${d.fecha}</td>
+                <td>${d.paciente}</td>
+                <td>${d.servicio}</td>
+                <td style="font-weight:bold; color:${d.estrellas <= 2 ? 'red' : 'green'}">${d.estrellas}⭐</td>
+                <td>${d.comentario}</td>
+            </tr>
         `).join('');
 
         renderCharts(data);
@@ -90,17 +120,26 @@
             return filtrados.reduce((a, b) => a + b.estrellas, 0) / filtrados.length;
         });
 
+        // Gráfica de Barras
         if(chart1) chart1.destroy();
         chart1 = new Chart(document.getElementById('barChart'), {
             type: 'bar',
-            data: { labels: servs, datasets: [{ label: 'Promedio', data: proms, backgroundColor: '#0056b3' }] }
+            data: { 
+                labels: servs, 
+                datasets: [{ label: 'Estrellas promedio', data: proms, backgroundColor: '#0056b3' }] 
+            },
+            options: { scales: { y: { beginAtZero: true, max: 5 } } }
         });
 
+        // Gráfica de Pastel
         const counts = [1,2,3,4,5].map(n => data.filter(d => d.estrellas === n).length);
         if(chart2) chart2.destroy();
         chart2 = new Chart(document.getElementById('pieChart'), {
             type: 'pie',
-            data: { labels: ['1⭐','2⭐','3⭐','4⭐','5⭐'], datasets: [{ data: counts, backgroundColor: ['#ff4d4d','#ffa64d','#ffeb3b','#8bc34a','#4caf50'] }] }
+            data: { 
+                labels: ['1⭐','2⭐','3⭐','4⭐','5⭐'], 
+                datasets: [{ data: counts, backgroundColor: ['#ff4d4d','#ffa64d','#ffeb3b','#8bc34a','#4caf50'] }] 
+            }
         });
     }
 
@@ -113,7 +152,9 @@
         a.click();
     }
 
+    // Cargar cada 30 segundos automáticamente
     cargar();
+    setInterval(cargar, 30000);
 </script>
 </body>
 </html>
