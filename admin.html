@@ -2,182 +2,118 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Laboratorios Clark</title>
+    <title>Admin - Laboratorios Clark</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --blue-clark: #0056b3; --danger: #dc3545; --success: #28a745; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        
-        /* Encabezado */
-        .header { background: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .logo { height: 60px; }
-        
-        /* Tarjetas de Resumen */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, min-minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .stat-card h2 { margin: 0; color: var(--blue-clark); font-size: 2.5rem; }
-        .stat-card p { margin: 5px 0 0; color: #666; font-weight: bold; }
-
-        /* Gráficas */
-        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .chart-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-
-        /* Tabla de Comentarios Críticos */
-        .criticos-box { background: #fff5f5; border: 2px solid #feb2b2; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-        .criticos-box h3 { color: var(--danger); margin-top: 0; }
-
-        /* Tabla General */
-        .table-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: var(--blue-clark); color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .stars-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .low { background: #fee2e2; color: #991b1b; }
-        .high { background: #dcfce7; color: #166534; }
-
-        .btn-download { background: var(--success); color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; }
-        .btn-download:hover { opacity: 0.9; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .criticos { background: #fff5f5; border: 2px solid #feb2b2; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #0056b3; color: white; }
+        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <img src="Logo.jfif" alt="Logo Clark" class="logo">
-        <h1>Dashboard Administrativo</h1>
-        <button onclick="descargarCSV()" class="btn-download">📥 Descargar Reporte Excel</button>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card"><h2 id="totalOpiniones">0</h2><p>Opiniones Totales</p></div>
-        <div class="stat-card"><h2 id="promedioGral">0.0</h2><p>Puntuación Media</p></div>
-        <div class="stat-card"><h2 id="alertaQuejas" style="color:var(--danger)">0</h2><p>Quejas Críticas (1-2⭐)</p></div>
-    </div>
-
-    <div class="charts-grid">
-        <div class="chart-box"><h3>Desempeño por Servicio</h3><canvas id="barChart"></canvas></div>
-        <div class="chart-box"><h3>Satisfacción</h3><canvas id="pieChart"></canvas></div>
-    </div>
-
-    <div class="criticos-box">
-        <h3>🚨 Atención Inmediata (Malas Experiencias)</h3>
-        <div id="listaCritica">Cargando alertas...</div>
-    </div>
-
-    <div class="table-box">
-        <h3>Historial Completo de Opiniones</h3>
-        <table id="tablaOpiniones">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Paciente</th>
-                    <th>Servicio</th>
-                    <th>Calificación</th>
-                    <th>Comentario</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+<div class="header">
+    <h1>Panel Administrativo - Clark</h1>
+    <button class="btn" onclick="descargar()">📥 Descargar Excel</button>
 </div>
 
+<div class="stats">
+    <div class="card"><h2 id="total">0</h2><p>Opiniones Totales</p></div>
+    <div class="card"><h2 id="promedio">0.0</h2><p>Promedio General</p></div>
+    <div class="card"><h2 id="quejas" style="color:red">0</h2><p>Quejas (1-2⭐)</p></div>
+</div>
+
+<div class="charts">
+    <div class="card"><h3>Promedio por Servicio</h3><canvas id="barChart"></canvas></div>
+    <div class="card"><h3>Distribución de Estrellas</h3><canvas id="pieChart"></canvas></div>
+</div>
+
+<div class="criticos">
+    <h3 style="color:red">🚨 Comentarios Negativos (Atención Urgente)</h3>
+    <div id="listaCritica"></div>
+</div>
+
+<table>
+    <thead><tr><th>Fecha</th><th>Paciente</th><th>Servicio</th><th>⭐</th><th>Comentario</th></tr></thead>
+    <tbody id="tablaCuerpo"></tbody>
+</table>
+
 <script>
-    let rawData = "";
+    let csvData = "";
+    let chart1 = null, chart2 = null;
 
-    async function cargarDatos() {
-        try {
-            const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
-            rawData = await res.text();
-            const filas = rawData.trim().split('\n').slice(1);
-            
-            const opiniones = filas.map(f => {
-                const c = f.split(',');
-                return { fecha: c[0], paciente: c[1], servicio: c[2], estrellas: parseInt(c[3]), comentario: c[4] };
-            }).filter(o => !isNaN(o.estrellas));
+    async function cargar() {
+        const res = await fetch('https://softwarequejas.onrender.com/ver-opiniones');
+        csvData = await res.text();
+        const filas = csvData.trim().split('\n').slice(1);
+        
+        const datos = filas.map(f => {
+            const c = f.split(',');
+            return { fecha: c[0], paciente: c[1], servicio: c[2], estrellas: parseInt(c[3]), comentario: c[4] };
+        }).filter(d => !isNaN(d.estrellas));
 
-            actualizarDashboard(opiniones);
-        } catch (e) { console.error("Error cargando datos", e); }
+        actualizarUI(datos);
     }
 
-    function actualizarDashboard(data) {
-        // 1. Estadísticas
-        document.getElementById('totalOpiniones').innerText = data.length;
-        const promedio = (data.reduce((acc, o) => acc + o.estrellas, 0) / data.length) || 0;
-        document.getElementById('promedioGral').innerText = promedio.toFixed(1);
+    function actualizarUI(data) {
+        document.getElementById('total').innerText = data.length;
+        const prom = data.reduce((a, b) => a + b.estrellas, 0) / data.length || 0;
+        document.getElementById('promedio').innerText = prom.toFixed(1);
         
-        const criticos = data.filter(o => o.estrellas <= 2);
-        document.getElementById('alertaQuejas').innerText = criticos.length;
+        const criticos = data.filter(d => d.estrellas <= 2);
+        document.getElementById('quejas').innerText = criticos.length;
 
-        // 2. Alertas Críticas (Lectura de comentarios malos)
-        const listaCritica = document.getElementById('listaCritica');
-        if(criticos.length === 0) {
-            listaCritica.innerHTML = "<p style='color:green'>✅ No hay quejas críticas pendientes.</p>";
-        } else {
-            listaCritica.innerHTML = criticos.map(o => `
-                <div style="background:white; padding:10px; margin-bottom:10px; border-left:5px solid red; border-radius:4px">
-                    <strong>${o.paciente}</strong> (${o.servicio}) - <span style="color:red">${o.estrellas}⭐</span><br>
-                    <em>"${o.comentario}"</em> <small style="float:right">${o.fecha}</small>
-                </div>
-            `).join('');
-        }
-
-        // 3. Tabla General
-        const tbody = document.querySelector('#tablaOpiniones tbody');
-        tbody.innerHTML = data.map(o => `
-            <tr>
-                <td>${o.fecha}</td>
-                <td>${o.paciente}</td>
-                <td>${o.servicio}</td>
-                <td><span class="stars-badge ${o.estrellas <= 2 ? 'low' : 'high'}">${o.estrellas} ⭐</span></td>
-                <td>${o.comentario}</td>
-            </tr>
+        // Lista de quejas
+        document.getElementById('listaCritica').innerHTML = criticos.map(c => `
+            <p><strong>${c.paciente}:</strong> ${c.comentario} (${c.estrellas}⭐)</p>
         `).join('');
 
-        // 4. Gráficas (Lógica corregida)
+        // Tabla
+        document.getElementById('tablaCuerpo').innerHTML = data.map(d => `
+            <tr><td>${d.fecha}</td><td>${d.paciente}</td><td>${d.servicio}</td><td>${d.estrellas}</td><td>${d.comentario}</td></tr>
+        `).join('');
+
         renderCharts(data);
     }
 
     function renderCharts(data) {
-        const servicios = [...new Set(data.map(o => o.servicio))];
-        const promedios = servicios.map(s => {
-            const filtrados = data.filter(o => o.servicio === s);
-            return filtrados.reduce((acc, o) => acc + o.estrellas, 0) / filtrados.length;
+        const servs = [...new Set(data.map(d => d.servicio))];
+        const proms = servs.map(s => {
+            const filtrados = data.filter(d => d.servicio === s);
+            return filtrados.reduce((a, b) => a + b.estrellas, 0) / filtrados.length;
         });
 
-        // Barras
-        new Chart(document.getElementById('barChart'), {
+        if(chart1) chart1.destroy();
+        chart1 = new Chart(document.getElementById('barChart'), {
             type: 'bar',
-            data: {
-                labels: servicios,
-                datasets: [{ label: 'Promedio de Estrellas', data: promedios, backgroundColor: '#0056b3' }]
-            },
-            options: { scales: { y: { min: 0, max: 5 } } }
+            data: { labels: servs, datasets: [{ label: 'Promedio', data: proms, backgroundColor: '#0056b3' }] }
         });
 
-        // Pastel
-        const conteo = [1,2,3,4,5].map(n => data.filter(o => o.estrellas === n).length);
-        new Chart(document.getElementById('pieChart'), {
+        const counts = [1,2,3,4,5].map(n => data.filter(d => d.estrellas === n).length);
+        if(chart2) chart2.destroy();
+        chart2 = new Chart(document.getElementById('pieChart'), {
             type: 'pie',
-            data: {
-                labels: ['1⭐', '2⭐', '3⭐', '4⭐', '5⭐'],
-                datasets: [{ data: conteo, backgroundColor: ['#ff4d4d', '#ffa64d', '#ffeb3b', '#8bc34a', '#4caf50'] }]
-            }
+            data: { labels: ['1⭐','2⭐','3⭐','4⭐','5⭐'], datasets: [{ data: counts, backgroundColor: ['#ff4d4d','#ffa64d','#ffeb3b','#8bc34a','#4caf50'] }] }
         });
     }
 
-    function descargarCSV() {
-        const blob = new Blob([rawData], { type: 'text/csv' });
+    function descargar() {
+        const blob = new Blob([csvData], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'Reporte_Satisfaccion_Clark.csv');
+        a.href = url;
+        a.download = 'Reporte_Clark.csv';
         a.click();
     }
 
-    cargarDatos();
+    cargar();
 </script>
-
 </body>
 </html>

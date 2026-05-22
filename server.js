@@ -39,17 +39,19 @@ app.post('/enviar-opinion', async (req, res) => {
 // Enviar datos formateados como CSV (para gráficas y descarga)
 app.get('/ver-opiniones', async (req, res) => {
     try {
-        const opiniones = await Opinion.find().sort({ _id: -1 });
+        // Esto va a la nube de MongoDB y trae TODO lo acumulado
+        const opiniones = await Opinion.find().sort({ _id: -1 }); 
+        
         let csv = "Fecha,Paciente,Servicio,Calificacion,Comentario\n";
         opiniones.forEach(o => {
-            // Limpiamos comas de los comentarios para no romper el Excel
             const comentarioLimpio = o.comentario.replace(/,/g, ".");
             csv += `${o.fecha},${o.paciente},${o.servicio},${o.calificacion},${comentarioLimpio}\n`;
         });
+        
         res.header('Content-Type', 'text/csv');
-        res.send(csv);
+        res.send(csv); 
     } catch (error) {
-        res.status(500).send("Error al obtener datos");
+        res.status(500).send("Error al obtener datos de la base de datos");
     }
 });
 
