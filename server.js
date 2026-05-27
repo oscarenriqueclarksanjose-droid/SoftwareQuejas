@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // CONEXIÓN A MONGODB (Usa tus credenciales de Atlas)
-const MONGO_URI = "mongodb+srv://TU_USUARIO:TU_PASSWORD@cluster0.z0wjfax.mongodb.net/LaboratorioClark?retryWrites=true&w=majority";
+const MONGO_URI = "mongodb+srv://admin1:12345@cluster0.z0wjfax.mongodb.net/LaboratorioClark?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Conexión exitosa a MongoDB Atlas"))
