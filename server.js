@@ -8,14 +8,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// CONEXIÓN MAESTRA A MONGODB
-const MONGO_URI = "mongodb+srv://admin1:12345@cluster0.z0wjfax.mongodb.net/?appName=Cluster0";
+// CONEXIÓN A MONGODB (Usa tus credenciales de Atlas)
+const MONGO_URI = "mongodb+srv://TU_USUARIO:TU_PASSWORD@cluster0.z0wjfax.mongodb.net/LaboratorioClark?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
-    .then(() => console.log("✅ Conectado a la Bóveda de MongoDB Atlas"))
+    .then(() => console.log("✅ Conexión exitosa a MongoDB Atlas"))
     .catch(err => console.error("❌ Error de conexión:", err));
 
-// Modelo de datos para las opiniones
+// Esquema de la Opinión
 const OpinionSchema = new mongoose.Schema({
     fecha: { type: String, default: () => new Date().toLocaleString() },
     paciente: String,
@@ -25,28 +25,36 @@ const OpinionSchema = new mongoose.Schema({
 });
 const Opinion = mongoose.model('Opinion', OpinionSchema);
 
-// Recibir opinión del cliente
+// RUTA: Guardar opinión
 app.post('/enviar-opinion', async (req, res) => {
     try {
         const nueva = new Opinion(req.body);
         await nueva.save();
-        res.json({ mensaje: "¡Opinión recibida y guardada en la nube!" });
+        res.json({ mensaje: "¡Opinión guardada en la nube con éxito!" });
     } catch (error) {
-        res.status(500).json({ mensaje: "Error en el servidor" });
+        res.status(500).json({ mensaje: "Error al guardar" });
     }
 });
 
-// Enviar datos formateados como CSV (para gráficas y descarga)
+// RUTA: Ver opiniones (JSON para el Dashboard)
 app.get('/ver-opiniones', async (req, res) => {
     try {
-        // Traemos los datos reales de la base de datos
         const opiniones = await Opinion.find().sort({ _id: -1 });
-        // Los enviamos como JSON (esto es lo que las gráficas entienden al 100%)
-        res.json(opiniones); 
+        res.json(opiniones);
     } catch (error) {
         res.status(500).json({ error: "Error al obtener datos" });
     }
 });
 
+// RUTA: Eliminar una reseña específica por ID
+app.delete('/eliminar-opinion/:id', async (req, res) => {
+    try {
+        await Opinion.findByIdAndDelete(req.params.id);
+        res.json({ mensaje: "Reseña eliminada correctamente" });
+    } catch (error) {
+        res.status(500).json({ error: "No se pudo eliminar la reseña" });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor Clark listo en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor Clark activo en puerto ${PORT}`));
